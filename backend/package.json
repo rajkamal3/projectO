@@ -1,11 +1,20 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "rajkamal",
-  "license": "ISC"
+	"name": "backend",
+	"version": "1.0.0",
+	"description": "",
+	"main": "app.js",
+	"scripts": {
+		"devBackend": "nodemon app.js"
+	},
+	"author": "rajkamal",
+	"license": "ISC",
+	"dependencies": {
+		"axios": "^0.21.1",
+		"cron": "^1.8.2",
+		"date-fns": "^2.23.0",
+		"dotenv": "^10.0.0",
+		"express": "^4.17.1",
+		"google-spreadsheet": "^3.1.15",
+		"nodemon": "^2.0.12"
+	}
 }
