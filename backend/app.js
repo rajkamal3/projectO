@@ -66,7 +66,7 @@ async function marketOpens() {
     const sheet = doc.sheetsByIndex[0];
 
     cron.schedule(
-        '39 00 * * *',
+        '45 00 * * *',
         async () => {
             getData();
         },
@@ -77,7 +77,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '40 00 * * *',
+        '46 00 * * *',
         async () => {
             console.log('starday');
 
@@ -98,7 +98,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '41 00 * * *',
+        '47 00 * * *',
         async () => {
             getData();
         },
@@ -109,7 +109,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '42 00 * * *',
+        '48 00 * * *',
         async () => {
             console.log('enday');
 
