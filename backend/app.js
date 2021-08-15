@@ -29,7 +29,7 @@ expiryHolidays.filter(date => {
 
 function getData() {
     axios
-        .post(process.env.EDELWEISS_OPTIONCHAIN_URL, {
+        .post(process.env.OPTIONCHAIN_URL, {
             aTyp: 'OPTIDX',
             exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
             uSym: 'BANKNIFTY'
@@ -66,7 +66,7 @@ async function marketOpens() {
     const sheet = doc.sheetsByIndex[0];
 
     cron.schedule(
-        '45 00 * * *',
+        '50 00 * * *',
         async () => {
             getData();
         },
@@ -77,7 +77,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '46 00 * * *',
+        '51 00 * * *',
         async () => {
             console.log('starday');
 
@@ -98,7 +98,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '47 00 * * *',
+        '52 00 * * *',
         async () => {
             getData();
         },
@@ -109,7 +109,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '48 00 * * *',
+        '53 00 * * *',
         async () => {
             console.log('enday');
 
@@ -144,6 +144,6 @@ async function marketOpens() {
     );
 }
 
-app.listen(3000, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log('App is running...');
 });
