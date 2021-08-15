@@ -4,7 +4,6 @@ const cron = require('node-cron');
 const dotenv = require('dotenv');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const nextThursday = require('date-fns/nextThursday');
-// const getData = require('./getData');
 
 const app = express();
 
@@ -28,27 +27,27 @@ expiryHolidays.filter(date => {
     }
 });
 
-axios
-    .post(process.env.EDELWEISS_OPTIONCHAIN_URL, {
-        aTyp: 'OPTIDX',
-        exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
-        uSym: 'BANKNIFTY'
-    })
-    .then(res => {
-        optionChain = res.data.opChn;
-        optionChain.map(option => {
-            if (option.atm === true) {
-                ceStart = option.ceQt.ltp;
-                peStart = option.peQt.ltp;
-                strikePrice = option.stkPrc;
-            }
+function getData() {
+    axios
+        .post(process.env.EDELWEISS_OPTIONCHAIN_URL, {
+            aTyp: 'OPTIDX',
+            exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
+            uSym: 'BANKNIFTY'
+        })
+        .then(res => {
+            optionChain = res.data.opChn;
+            optionChain.map(option => {
+                if (option.atm === true) {
+                    ceStart = option.ceQt.ltp;
+                    peStart = option.peQt.ltp;
+                    strikePrice = option.stkPrc;
+                }
+            });
+        })
+        .catch(err => {
+            console.log('Failed to fetch data...');
         });
-    })
-    .catch(err => {
-        console.log('Failed to fetch data...');
-    });
-
-// const { optionChain, ceStart, peStart, strikePrice } = getData();
+}
 
 (function () {
     marketOpens();
@@ -67,7 +66,18 @@ async function marketOpens() {
     const sheet = doc.sheetsByIndex[0];
 
     cron.schedule(
-        '55 23 * * *',
+        '14 00 * * *',
+        async () => {
+            getData();
+        },
+        {
+            scheduled: true,
+            timezone: 'Asia/Kolkata'
+        }
+    );
+
+    cron.schedule(
+        '15 00 * * *',
         async () => {
             console.log('starday');
 
@@ -88,7 +98,18 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '56 23 * * *',
+        '16 00 * * *',
+        async () => {
+            getData();
+        },
+        {
+            scheduled: true,
+            timezone: 'Asia/Kolkata'
+        }
+    );
+
+    cron.schedule(
+        '17 00 * * *',
         async () => {
             console.log('enday');
 
