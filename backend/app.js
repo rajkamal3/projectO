@@ -49,10 +49,6 @@ function getData() {
         });
 }
 
-(function () {
-    marketOpens();
-})();
-
 async function marketOpens() {
     const doc = new GoogleSpreadsheet('1FJAbRAKktVWb5SBIMEqZWnq-PzHkJt9BbJARmuvAWnM');
 
@@ -66,7 +62,7 @@ async function marketOpens() {
     const sheet = doc.sheetsByIndex[0];
 
     cron.schedule(
-        '50 00 * * *',
+        '56 00 * * *',
         async () => {
             getData();
         },
@@ -77,7 +73,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '51 00 * * *',
+        '57 00 * * *',
         async () => {
             console.log('starday');
 
@@ -98,7 +94,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '52 00 * * *',
+        '58 00 * * *',
         async () => {
             getData();
         },
@@ -109,7 +105,7 @@ async function marketOpens() {
     );
 
     cron.schedule(
-        '53 00 * * *',
+        '59 00 * * *',
         async () => {
             console.log('enday');
 
@@ -143,6 +139,8 @@ async function marketOpens() {
         }
     );
 }
+
+app.get('/', marketOpens);
 
 app.listen(process.env.PORT || 3000, () => {
     console.log('App is running...');
