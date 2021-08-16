@@ -66,9 +66,7 @@ async function marketOpens(req, res, next) {
         Total: ''
     });
 
-    res.status(200).json({
-        status: 'success'
-    });
+    res.end();
 }
 
 async function marketCloses(req, res, next) {
@@ -95,16 +93,14 @@ async function marketCloses(req, res, next) {
 
     await sheet.saveUpdatedCells();
 
-    res.status(200).json({
-        status: 'success'
-    });
+    res.end();
 }
 
 app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '59 22 * * 1-5',
+    '13 23 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketOpens');
     },
@@ -115,7 +111,7 @@ cron.schedule(
 );
 
 cron.schedule(
-    '00 23 * * 1-5',
+    '14 23 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketCloses');
     },
