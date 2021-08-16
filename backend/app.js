@@ -52,35 +52,26 @@ function getData(req, res, next) {
     next();
 }
 
-async function marketOpens(req, res, next) {
+async function marketOpensFn(req, res, next) {
     const sheet = await loadSheet();
     console.log('Market opens...');
 
-    await sheet.loadCells('A1:G500');
-    const lastRow = await sheet.getRows();
-    const currentCell = lastRow[lastRow.length - 2]._rowNumber;
-
-    // await sheet.addRow({
-    //     Date: new Date().toGMTString().substr(5, 11),
-    //     'Strike Price': strikePrice,
-    //     'CE Start': ceStart,
-    //     'CE End': '',
-    //     'PE Start': peStart,
-    //     'PE End': '',
-    //     Total: ''
-    // });
-    sheet.getCellByA1('B' + currentCell).value = strikePrice;
-    sheet.getCellByA1('C' + currentCell).value = ceStart;
-    sheet.getCellByA1('E' + currentCell).value = peStart;
-
-    await sheet.saveUpdatedCells();
+    await sheet.addRow({
+        Date: new Date().toGMTString().substr(5, 11),
+        'Strike Price': strikePrice,
+        'CE Start': ceStart,
+        'CE End': '',
+        'PE Start': peStart,
+        'PE End': '',
+        Total: ''
+    });
 
     res.status(200).json({
         status: 'success'
     });
 }
 
-async function marketCloses(req, res, next) {
+async function marketClosesFn(req, res, next) {
     const sheet = await loadSheet();
     console.log('Market closes...');
 
@@ -109,11 +100,11 @@ async function marketCloses(req, res, next) {
     });
 }
 
-app.get('/api/marketOpens', getData, marketOpens);
-app.get('/api/marketCloses', getData, marketCloses);
+app.get('/api/marketOpens', getData, marketOpensFn);
+app.get('/api/marketCloses', getData, marketClosesFn);
 
 cron.schedule(
-    '48 22 * * 1-5',
+    '54 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketOpens');
     },
@@ -124,7 +115,7 @@ cron.schedule(
 );
 
 cron.schedule(
-    '49 22 * * 1-5',
+    '55 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketCloses');
     },
