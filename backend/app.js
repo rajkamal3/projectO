@@ -52,7 +52,7 @@ function getData(req, res, next) {
     next();
 }
 
-async function marketOpensFn(req, res, next) {
+async function marketOpens(req, res, next) {
     const sheet = await loadSheet();
     console.log('Market opens...');
 
@@ -71,7 +71,7 @@ async function marketOpensFn(req, res, next) {
     });
 }
 
-async function marketClosesFn(req, res, next) {
+async function marketCloses(req, res, next) {
     const sheet = await loadSheet();
     console.log('Market closes...');
 
@@ -100,11 +100,11 @@ async function marketClosesFn(req, res, next) {
     });
 }
 
-app.get('/api/marketOpens', getData, marketOpensFn);
-app.get('/api/marketCloses', getData, marketClosesFn);
+app.get('/api/marketOpens', getData, marketOpens);
+app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '54 22 * * 1-5',
+    '59 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketOpens');
     },
@@ -115,7 +115,7 @@ cron.schedule(
 );
 
 cron.schedule(
-    '55 22 * * 1-5',
+    '00 23 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketCloses');
     },
