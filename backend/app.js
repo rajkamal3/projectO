@@ -56,15 +56,24 @@ async function marketOpens(req, res, next) {
     const sheet = await loadSheet();
     console.log('Market opens...');
 
-    await sheet.addRow({
-        Date: new Date().toGMTString().substr(5, 11),
-        'Strike Price': strikePrice,
-        'CE Start': ceStart,
-        'CE End': '',
-        'PE Start': peStart,
-        'PE End': '',
-        Total: ''
-    });
+    await sheet.loadCells('A1:G500');
+    const lastRow = await sheet.getRows();
+    const currentCell = lastRow[lastRow.length]._rowNumber;
+
+    // await sheet.addRow({
+    //     Date: new Date().toGMTString().substr(5, 11),
+    //     'Strike Price': strikePrice,
+    //     'CE Start': ceStart,
+    //     'CE End': '',
+    //     'PE Start': peStart,
+    //     'PE End': '',
+    //     Total: ''
+    // });
+    sheet.getCellByA1('B' + currentCell).value = strikePrice;
+    sheet.getCellByA1('C' + currentCell).value = ceStart;
+    sheet.getCellByA1('E' + currentCell).value = peStart;
+
+    await sheet.saveUpdatedCells();
 
     res.status(200).json({
         status: 'success'
@@ -104,7 +113,7 @@ app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '40 22 * * 1-5',
+    '45 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketOpens');
     },
@@ -115,7 +124,7 @@ cron.schedule(
 );
 
 cron.schedule(
-    '41 22 * * 1-5',
+    '46 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketCloses');
     },
