@@ -100,9 +100,9 @@ app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '17 23 * * 1-5',
+    '24 23 * * 1-5',
     async () => {
-        axios.get('https://stokr-projecto.herokuapp.com/api/marketOpens');
+        axios.get('http://localhost:3000/api/marketOpens');
     },
     {
         scheduled: true,
@@ -111,9 +111,9 @@ cron.schedule(
 );
 
 cron.schedule(
-    '18 23 * * 1-5',
+    '25 23 * * 1-5',
     async () => {
-        axios.get('https://stokr-projecto.herokuapp.com/api/marketCloses');
+        axios.get('http://localhost:3000/api/marketCloses');
     },
     {
         scheduled: true,
