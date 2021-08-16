@@ -104,10 +104,10 @@ app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '52 23 * * 1-5',
+    '55 23 * * 1-5',
     async () => {
         axios
-            .get('http://127.0.0.1:3000/api/marketOpens')
+            .get('/api/marketOpens')
             .then(res => {
                 console.log('Success.');
             })
@@ -122,10 +122,10 @@ cron.schedule(
 );
 
 cron.schedule(
-    '53 23 * * 1-5',
+    '56 23 * * 1-5',
     async () => {
         axios
-            .get('http://127.0.0.1:3000/api/marketCloses')
+            .get('/api/marketCloses')
             .then(res => {
                 console.log('Success.');
             })
