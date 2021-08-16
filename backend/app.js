@@ -66,7 +66,9 @@ async function marketOpens(req, res, next) {
         Total: ''
     });
 
-    res.end();
+    res.status(200).json({
+        status: 'Success'
+    });
 }
 
 async function marketCloses(req, res, next) {
@@ -93,14 +95,16 @@ async function marketCloses(req, res, next) {
 
     await sheet.saveUpdatedCells();
 
-    res.end();
+    res.status(200).json({
+        status: 'Success'
+    });
 }
 
 app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '48 23 * * 1-5',
+    '52 23 * * 1-5',
     async () => {
         axios
             .get('http://127.0.0.1:3000/api/marketOpens')
@@ -118,7 +122,7 @@ cron.schedule(
 );
 
 cron.schedule(
-    '49 23 * * 1-5',
+    '53 23 * * 1-5',
     async () => {
         axios
             .get('http://127.0.0.1:3000/api/marketCloses')
