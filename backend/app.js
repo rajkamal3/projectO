@@ -100,11 +100,16 @@ app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '44 23 * * 1-5',
+    '48 23 * * 1-5',
     async () => {
-        axios.get('http://127.0.0.1:3000/api/marketOpens').catch(err => {
-            console.log('Error.');
-        });
+        axios
+            .get('http://127.0.0.1:3000/api/marketOpens')
+            .then(res => {
+                console.log('Success.');
+            })
+            .catch(err => {
+                console.log('Error.');
+            });
     },
     {
         scheduled: true,
@@ -113,11 +118,16 @@ cron.schedule(
 );
 
 cron.schedule(
-    '45 23 * * 1-5',
+    '49 23 * * 1-5',
     async () => {
-        axios.get('http://127.0.0.1:3000/api/marketCloses').catch(err => {
-            console.log('Error.');
-        });
+        axios
+            .get('http://127.0.0.1:3000/api/marketCloses')
+            .then(res => {
+                console.log('Success.');
+            })
+            .catch(err => {
+                console.log('Error.');
+            });
     },
     {
         scheduled: true,
