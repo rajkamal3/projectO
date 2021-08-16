@@ -58,7 +58,7 @@ async function marketOpens(req, res, next) {
 
     await sheet.loadCells('A1:G500');
     const lastRow = await sheet.getRows();
-    const currentCell = lastRow[lastRow.length]._rowNumber;
+    const currentCell = lastRow[lastRow.length - 2]._rowNumber;
 
     // await sheet.addRow({
     //     Date: new Date().toGMTString().substr(5, 11),
@@ -113,7 +113,7 @@ app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
 
 cron.schedule(
-    '45 22 * * 1-5',
+    '48 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketOpens');
     },
@@ -124,7 +124,7 @@ cron.schedule(
 );
 
 cron.schedule(
-    '46 22 * * 1-5',
+    '49 22 * * 1-5',
     async () => {
         axios.get('https://stokr-projecto.herokuapp.com/api/marketCloses');
     },
