@@ -100,8 +100,15 @@ async function marketCloses(req, res, next) {
     });
 }
 
+function dontSleep(req, res, next) {
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
 app.get('/api/marketOpens', getData, marketOpens);
 app.get('/api/marketCloses', getData, marketCloses);
+app.get('/api/dontSleep', dontSleep);
 
 cron.schedule(
     '16 09 * * 1-5',
@@ -138,6 +145,11 @@ cron.schedule(
         timezone: 'Asia/Kolkata'
     }
 );
+
+setInterval(() => {
+    axios.get('http://127.0.0.1:3000/api/dontSleep');
+    console.log(`Don't sleep...`);
+}, 20 * 60 * 1000);
 
 app.listen(process.env.PORT || 3000, () => {
     console.log('App is running...');
