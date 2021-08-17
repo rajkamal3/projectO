@@ -147,7 +147,9 @@ cron.schedule(
 );
 
 setInterval(() => {
-    axios.get('http://127.0.0.1:3000/api/dontSleep');
+    axios.get('http://127.0.0.1:3000/api/dontSleep').catch(err => {
+        console.log(`Error in don't sleep...`);
+    });
     console.log(`Don't sleep...`);
 }, 20 * 60 * 1000);
 
