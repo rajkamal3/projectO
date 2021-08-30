@@ -1,10 +1,14 @@
 const express = require('express');
 const axios = require('axios');
-const cron = require('node-cron');
 const dotenv = require('dotenv');
 const nextThursday = require('date-fns/nextThursday');
 const { loadSheet } = require('./controllers/loadSheet');
 const { expiryHolidays } = require('./utils/constants');
+const path = require('path');
+
+dotenv.config({
+    path: `${__dirname}/config.env`
+});
 
 const app = express();
 
@@ -100,59 +104,20 @@ async function marketCloses(req, res, next) {
     });
 }
 
-function dontSleep(req, res, next) {
-    res.status(200).json({
-        status: 'Success'
+app.get('/api/marketOpens', getData, marketOpens);
+app.get('/api/marketCloses', getData, marketCloses);
+
+console.log(process.env.NODE_ENV);
+
+if (process.env.NODE_ENV === 'prod') {
+    app.use(express.static(`${__dirname}/../frontend/build`));
+    app.get('/*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../frontend/build/index.html`)));
+} else {
+    app.get('/', (req, res) => {
+        res.send(`I'm a freakin' server!`);
     });
 }
 
-app.get('/api/marketOpens', getData, marketOpens);
-app.get('/api/marketCloses', getData, marketCloses);
-app.get('/api/dontSleep', dontSleep);
-
-cron.schedule(
-    '16 09 * * 1-5',
-    async () => {
-        axios
-            .get('http://127.0.0.1:3000/api/marketOpens')
-            .then(res => {
-                console.log('Success.');
-            })
-            .catch(err => {
-                console.log('Error.');
-            });
-    },
-    {
-        scheduled: true,
-        timezone: 'Asia/Kolkata'
-    }
-);
-
-cron.schedule(
-    '20 15 * * 1-5',
-    async () => {
-        axios
-            .get('http://127.0.0.1:3000/api/marketCloses')
-            .then(res => {
-                console.log('Success.');
-            })
-            .catch(err => {
-                console.log('Error.');
-            });
-    },
-    {
-        scheduled: true,
-        timezone: 'Asia/Kolkata'
-    }
-);
-
-setInterval(() => {
-    axios.get('http://127.0.0.1:3000/api/dontSleep').catch(err => {
-        console.log(`Error in don't sleep...`);
-    });
-    console.log(`Don't sleep...`);
-}, 20 * 60 * 1000);
-
 app.listen(process.env.PORT || 3000, () => {
-    console.log('App is running...');
+    console.log(`App is running on port ${process.env.PORT || 3000}...`);
 });
