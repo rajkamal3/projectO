@@ -1,6 +1,6 @@
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 
-exports.loadSheet = async () => {
+exports.loadSheet = async sheetNumber => {
     const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID);
 
     await doc.useServiceAccountAuth({
@@ -10,7 +10,7 @@ exports.loadSheet = async () => {
 
     await doc.loadInfo();
 
-    const sheet = doc.sheetsByIndex[0];
+    const sheet = doc.sheetsByIndex[sheetNumber];
 
     return sheet;
 };

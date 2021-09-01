@@ -18,10 +18,17 @@ dotenv.config({
     path: `${__dirname}/../config.env`
 });
 
-let optionChain;
-let ceStart;
-let peStart;
-let strikePrice;
+// Daily Straddle
+let optionChainDailyStraddle;
+let ceStartDailyStraddle;
+let peStartDailyStraddle;
+let strikePriceDailyStraddle;
+
+// Daily Strangle
+let optionChainDailyStrangle;
+let ceStartDailyStrangle;
+let peStartDailyStrangle;
+let strikePriceDailyStrangle;
 
 let nextExpiry = nextThursday(new Date());
 
@@ -31,7 +38,8 @@ expiryHolidays.filter(date => {
     }
 });
 
-function getData(req, res, next) {
+// Daily Straddle
+function getDataDailyStraddle(req, res, next) {
     console.log('Fetching data...');
     axios
         .post(process.env.OPTIONCHAIN_URL, {
@@ -40,12 +48,12 @@ function getData(req, res, next) {
             uSym: 'BANKNIFTY'
         })
         .then(res => {
-            optionChain = res.data.opChn;
-            optionChain.map(option => {
+            optionChainDailyStraddle = res.data.opChn;
+            optionChainDailyStraddle.map(option => {
                 if (option.atm === true) {
-                    ceStart = option.ceQt.ltp;
-                    peStart = option.peQt.ltp;
-                    strikePrice = option.stkPrc;
+                    ceStartDailyStraddle = option.ceQt.ltp;
+                    peStartDailyStraddle = option.peQt.ltp;
+                    strikePriceDailyStraddle = option.stkPrc;
                 }
             });
         })
@@ -56,16 +64,16 @@ function getData(req, res, next) {
     next();
 }
 
-async function marketOpens(req, res, next) {
-    const sheet = await loadSheet();
+async function marketOpensDailyStraddle(req, res, next) {
+    const sheet = await loadSheet(0);
     console.log('Market opens...');
 
     await sheet.addRow({
         Date: new Date().toGMTString().substr(5, 11),
-        'Strike Price': strikePrice,
-        'CE Start': ceStart,
+        'Strike Price': strikePriceDailyStraddle,
+        'CE Start': ceStartDailyStraddle,
         'CE End': '',
-        'PE Start': peStart,
+        'PE Start': peStartDailyStraddle,
         'PE End': '',
         Total: ''
     });
@@ -75,8 +83,8 @@ async function marketOpens(req, res, next) {
     });
 }
 
-async function marketCloses(req, res, next) {
-    const sheet = await loadSheet();
+async function marketClosesDailyStraddle(req, res, next) {
+    const sheet = await loadSheet(0);
     console.log('Market closes...');
 
     await sheet.loadCells('A1:G500');
@@ -86,7 +94,7 @@ async function marketCloses(req, res, next) {
 
     let ceEnd, peEnd;
 
-    optionChain.map(option => {
+    optionChainDailyStraddle.map(option => {
         if (option.stkPrc === todayStrike) {
             ceEnd = option.ceQt.ltp;
             peEnd = option.peQt.ltp;
@@ -104,12 +112,97 @@ async function marketCloses(req, res, next) {
     });
 }
 
-app.get('/api/marketOpens', getData, marketOpens);
-app.get('/api/marketCloses', getData, marketCloses);
+// Daily Strangle
+function getDataDailyStrangle(req, res, next) {
+    console.log('Fetching data...');
+    axios
+        .post(process.env.OPTIONCHAIN_URL, {
+            aTyp: 'OPTIDX',
+            exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
+            uSym: 'BANKNIFTY'
+        })
+        .then(res => {
+            optionChainDailyStrangle = res.data.opChn;
+            optionChainDailyStrangle.map(option => {
+                if (option.atm === true) {
+                    const atm = optionChainDailyStrangle.indexOf(option);
+                    const otmCe = optionChainDailyStrangle[atm + 1];
+                    const otmPe = optionChainDailyStrangle[atm - 1];
 
-console.log(process.env.NODE_ENV);
+                    ceStartDailyStrangle = otmCe.ceQt.ltp;
+                    peStartDailyStrangle = otmPe.peQt.ltp;
+                    strikePriceDailyStrangle = option.stkPrc;
+                }
+            });
+        })
+        .catch(err => {
+            console.log('Failed to fetch data...');
+        });
 
-if (process.env.NODE_ENV === 'prod') {
+    next();
+}
+
+async function marketOpensDailyStrangle(req, res, next) {
+    const sheet = await loadSheet(1);
+    console.log('Market opens...');
+
+    await sheet.addRow({
+        Date: new Date().toGMTString().substr(5, 11),
+        'Strike Price': strikePriceDailyStrangle,
+        'CE Start': ceStartDailyStrangle,
+        'CE End': '',
+        'PE Start': peStartDailyStrangle,
+        'PE End': '',
+        Total: ''
+    });
+
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
+async function marketClosesDailyStrangle(req, res, next) {
+    const sheet = await loadSheet(1);
+    console.log('Market closes...');
+
+    await sheet.loadCells('A1:G500');
+    const lastRow = await sheet.getRows();
+    const currentCell = lastRow[lastRow.length - 1]._rowNumber;
+    const todayStrike = sheet.getCellByA1('B' + currentCell).value.toString() + '.0';
+
+    let ceEnd, peEnd;
+
+    optionChainDailyStrangle.map(option => {
+        if (option.stkPrc === todayStrike) {
+            const atm = optionChainDailyStrangle.indexOf(option);
+            console.log(atm);
+            const otmCe = optionChainDailyStrangle[atm + 1];
+            const otmPe = optionChainDailyStrangle[atm - 1];
+
+            ceEnd = otmCe.ceQt.ltp;
+            peEnd = otmPe.peQt.ltp;
+            strikePriceDailyStrangle = option.stkPrc;
+        }
+    });
+
+    sheet.getCellByA1('D' + currentCell).value = ceEnd;
+    sheet.getCellByA1('F' + currentCell).value = peEnd;
+    sheet.getCellByA1('G' + currentCell).formula = `=MINUS(C${currentCell},D${currentCell}) + MINUS(E${currentCell},F${currentCell})`;
+
+    await sheet.saveUpdatedCells();
+
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
+app.get('/api/marketOpensDailyStraddle', getDataDailyStraddle, marketOpensDailyStraddle);
+app.get('/api/marketClosesDailyStraddle', getDataDailyStraddle, marketClosesDailyStraddle);
+
+app.get('/api/marketOpensDailyStrangle', getDataDailyStrangle, marketOpensDailyStrangle);
+app.get('/api/marketClosesDailyStrangle', getDataDailyStrangle, marketClosesDailyStrangle);
+
+if (process.env.NODE_ENV === 'sdf') {
     app.use(express.static(`${__dirname}/../frontend/build`));
     app.get('/*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../frontend/build/index.html`)));
 } else {

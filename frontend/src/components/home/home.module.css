@@ -41,4 +41,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+}
+
+.marketOpensClosesButtons:visited {
+    background-color: red;
 }
