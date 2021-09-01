@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const cron = require('node-cron');
 const nextThursday = require('date-fns/nextThursday');
 const { loadSheet } = require('./controllers/loadSheet');
 const { expiryHolidays } = require('./utils/constants');
@@ -17,6 +18,24 @@ app.use(express.json());
 dotenv.config({
     path: `${__dirname}/../config.env`
 });
+
+async function wakeUp(req, res) {
+    console.log('Waking up...');
+    const response = await axios
+        .get('https://jsonplaceholder.typicode.com/posts')
+        .then(res => {
+            console.log('This guy woke up!');
+            return res.data;
+        })
+        .catch(err => {
+            console.log('Failed to wake up...');
+        });
+
+    res.status(200).json({
+        status: 'Success',
+        data: response
+    });
+}
 
 // Daily Straddle
 let optionChainDailyStraddle;
@@ -196,13 +215,67 @@ async function marketClosesDailyStrangle(req, res, next) {
     });
 }
 
+app.get('/api/wakeup', wakeUp);
+
 app.get('/api/marketOpensDailyStraddle', getDataDailyStraddle, marketOpensDailyStraddle);
 app.get('/api/marketClosesDailyStraddle', getDataDailyStraddle, marketClosesDailyStraddle);
 
 app.get('/api/marketOpensDailyStrangle', getDataDailyStrangle, marketOpensDailyStrangle);
 app.get('/api/marketClosesDailyStrangle', getDataDailyStrangle, marketClosesDailyStrangle);
 
-if (process.env.NODE_ENV === 'sdf') {
+cron.schedule(
+    '16 09 * * 1-5',
+    async () => {
+        axios
+            .get('http://127.0.0.1:3000/api/marketOpensDailyStraddle')
+            .then(res => {
+                console.log('Straddle start success.');
+            })
+            .catch(err => {
+                console.log('Error.');
+            });
+        axios
+            .get('http://127.0.0.1:3000/api/marketOpensDailyStrangle')
+            .then(res => {
+                console.log('Strangle start success.');
+            })
+            .catch(err => {
+                console.log('Error.');
+            });
+    },
+    {
+        scheduled: true,
+        timezone: 'Asia/Kolkata'
+    }
+);
+
+cron.schedule(
+    '20 15 * * 1-5',
+    async () => {
+        axios
+            .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
+            .then(res => {
+                console.log('Straddle end success.');
+            })
+            .catch(err => {
+                console.log('Error.');
+            });
+        axios
+            .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
+            .then(res => {
+                console.log('Strangle end success.');
+            })
+            .catch(err => {
+                console.log('Error.');
+            });
+    },
+    {
+        scheduled: true,
+        timezone: 'Asia/Kolkata'
+    }
+);
+
+if (process.env.NODE_ENV === 'prod') {
     app.use(express.static(`${__dirname}/../frontend/build`));
     app.get('/*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../frontend/build/index.html`)));
 } else {

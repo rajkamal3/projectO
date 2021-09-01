@@ -4,7 +4,9 @@ import axios from 'axios';
 
 const Home = () => {
     useEffect(() => {
-        console.log('huell');
+        axios.get('/api/wakeUp').then(res => {
+            console.log(res);
+        });
     }, []);
 
     const marketOpens = () => {
