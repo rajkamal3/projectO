@@ -21,19 +21,62 @@ dotenv.config({
 
 async function wakeUp(req, res) {
     console.log('Waking up...');
-    const response = await axios
-        .get('https://jsonplaceholder.typicode.com/posts')
-        .then(res => {
-            console.log('This guy woke up!');
-            return res.data;
-        })
-        .catch(err => {
-            console.log('Failed to wake up...');
-        });
+
+    cron.schedule(
+        '16 09 * * 1-5',
+        async () => {
+            axios
+                .get('http://127.0.0.1:3000/api/marketOpensDailyStraddle')
+                .then(res => {
+                    console.log('Straddle start success.');
+                })
+                .catch(err => {
+                    console.log('Error.');
+                });
+            axios
+                .get('http://127.0.0.1:3000/api/marketOpensDailyStrangle')
+                .then(res => {
+                    console.log('Strangle start success.');
+                })
+                .catch(err => {
+                    console.log('Error.');
+                });
+        },
+        {
+            scheduled: true,
+            timezone: 'Asia/Kolkata'
+        }
+    );
+
+    cron.schedule(
+        '20 15 * * 1-5',
+        async () => {
+            axios
+                .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
+                .then(res => {
+                    console.log('Straddle end success.');
+                })
+                .catch(err => {
+                    console.log('Error.');
+                });
+            axios
+                .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
+                .then(res => {
+                    console.log('Strangle end success.');
+                })
+                .catch(err => {
+                    console.log('Error.');
+                });
+        },
+        {
+            scheduled: true,
+            timezone: 'Asia/Kolkata'
+        }
+    );
 
     res.status(200).json({
         status: 'Success',
-        data: response
+        message: 'This guy woke up!'
     });
 }
 
@@ -222,58 +265,6 @@ app.get('/api/marketClosesDailyStraddle', getDataDailyStraddle, marketClosesDail
 
 app.get('/api/marketOpensDailyStrangle', getDataDailyStrangle, marketOpensDailyStrangle);
 app.get('/api/marketClosesDailyStrangle', getDataDailyStrangle, marketClosesDailyStrangle);
-
-cron.schedule(
-    '16 09 * * 1-5',
-    async () => {
-        axios
-            .get('http://127.0.0.1:3000/api/marketOpensDailyStraddle')
-            .then(res => {
-                console.log('Straddle start success.');
-            })
-            .catch(err => {
-                console.log('Error.');
-            });
-        axios
-            .get('http://127.0.0.1:3000/api/marketOpensDailyStrangle')
-            .then(res => {
-                console.log('Strangle start success.');
-            })
-            .catch(err => {
-                console.log('Error.');
-            });
-    },
-    {
-        scheduled: true,
-        timezone: 'Asia/Kolkata'
-    }
-);
-
-cron.schedule(
-    '20 15 * * 1-5',
-    async () => {
-        axios
-            .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
-            .then(res => {
-                console.log('Straddle end success.');
-            })
-            .catch(err => {
-                console.log('Error.');
-            });
-        axios
-            .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
-            .then(res => {
-                console.log('Strangle end success.');
-            })
-            .catch(err => {
-                console.log('Error.');
-            });
-    },
-    {
-        scheduled: true,
-        timezone: 'Asia/Kolkata'
-    }
-);
 
 if (process.env.NODE_ENV === 'prod') {
     app.use(express.static(`${__dirname}/../frontend/build`));
