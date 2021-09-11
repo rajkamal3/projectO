@@ -359,7 +359,7 @@ app.get('/api/marketClosesDailyStrangle', getDataDailyStrangle, marketClosesDail
 app.get('/api/marketOpensDailyStrangle1000', getDataDailyStrangle1000, marketOpensDailyStrangle1000);
 app.get('/api/marketClosesDailyStrangle1000', getDataDailyStrangle1000, marketClosesDailyStrangle1000);
 
-if (process.env.NODE_ENV === 'dev') {
+if (process.env.NODE_ENV === 'prod') {
     app.use(express.static(`${__dirname}/../frontend/build`));
     app.get('/*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../frontend/build/index.html`)));
 } else {
