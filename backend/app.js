@@ -92,6 +92,12 @@ let ceStartDailyStrangle;
 let peStartDailyStrangle;
 let strikePriceDailyStrangle;
 
+// Daily Strangle 1000 Points
+let optionChainDailyStrangle1000;
+let ceStartDailyStrangle1000;
+let peStartDailyStrangle1000;
+let strikePriceDailyStrangle1000;
+
 let nextExpiry = nextThursday(new Date());
 
 expiryHolidays.filter(date => {
@@ -258,6 +264,90 @@ async function marketClosesDailyStrangle(req, res, next) {
     });
 }
 
+// Daily Strangle 1000 Points
+function getDataDailyStrangle1000(req, res, next) {
+    console.log('Fetching data...');
+    axios
+        .post(process.env.OPTIONCHAIN_URL, {
+            aTyp: 'OPTIDX',
+            exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
+            uSym: 'BANKNIFTY'
+        })
+        .then(res => {
+            optionChainDailyStrangle1000 = res.data.opChn;
+            optionChainDailyStrangle1000.map(option => {
+                if (option.atm === true) {
+                    const atm = optionChainDailyStrangle1000.indexOf(option);
+                    const otmCe = optionChainDailyStrangle1000[atm + 5];
+                    const otmPe = optionChainDailyStrangle1000[atm - 5];
+
+                    ceStartDailyStrangle1000 = otmCe.ceQt.ltp;
+                    peStartDailyStrangle1000 = otmPe.peQt.ltp;
+                    strikePriceDailyStrangle1000 = option.stkPrc;
+                }
+            });
+        })
+        .catch(err => {
+            console.log('Failed to fetch data...');
+        });
+
+    next();
+}
+
+async function marketOpensDailyStrangle1000(req, res, next) {
+    const sheet = await loadSheet(2);
+    console.log('Market opens...');
+
+    await sheet.addRow({
+        Date: new Date().toGMTString().substr(5, 11),
+        'Strike Price': strikePriceDailyStrangle1000,
+        'CE Start': ceStartDailyStrangle1000,
+        'CE End': '',
+        'PE Start': peStartDailyStrangle1000,
+        'PE End': '',
+        Total: ''
+    });
+
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
+async function marketClosesDailyStrangle1000(req, res, next) {
+    const sheet = await loadSheet(2);
+    console.log('Market closes...');
+
+    await sheet.loadCells('A1:G500');
+    const lastRow = await sheet.getRows();
+    const currentCell = lastRow[lastRow.length - 1]._rowNumber;
+    const todayStrike = sheet.getCellByA1('B' + currentCell).value.toString() + '.0';
+
+    let ceEnd, peEnd;
+
+    optionChainDailyStrangle1000.map(option => {
+        if (option.stkPrc === todayStrike) {
+            const atm = optionChainDailyStrangle1000.indexOf(option);
+            console.log(atm);
+            const otmCe = optionChainDailyStrangle1000[atm + 5];
+            const otmPe = optionChainDailyStrangle1000[atm - 5];
+
+            ceEnd = otmCe.ceQt.ltp;
+            peEnd = otmPe.peQt.ltp;
+            strikePriceDailyStrangle1000 = option.stkPrc;
+        }
+    });
+
+    sheet.getCellByA1('D' + currentCell).value = ceEnd;
+    sheet.getCellByA1('F' + currentCell).value = peEnd;
+    sheet.getCellByA1('G' + currentCell).formula = `=MINUS(C${currentCell},D${currentCell}) + MINUS(E${currentCell},F${currentCell})`;
+
+    await sheet.saveUpdatedCells();
+
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
 app.get('/api/wakeup', wakeUp);
 
 app.get('/api/marketOpensDailyStraddle', getDataDailyStraddle, marketOpensDailyStraddle);
@@ -266,7 +356,10 @@ app.get('/api/marketClosesDailyStraddle', getDataDailyStraddle, marketClosesDail
 app.get('/api/marketOpensDailyStrangle', getDataDailyStrangle, marketOpensDailyStrangle);
 app.get('/api/marketClosesDailyStrangle', getDataDailyStrangle, marketClosesDailyStrangle);
 
-if (process.env.NODE_ENV === 'prod') {
+app.get('/api/marketOpensDailyStrangle1000', getDataDailyStrangle1000, marketOpensDailyStrangle1000);
+app.get('/api/marketClosesDailyStrangle1000', getDataDailyStrangle1000, marketClosesDailyStrangle1000);
+
+if (process.env.NODE_ENV === 'dev') {
     app.use(express.static(`${__dirname}/../frontend/build`));
     app.get('/*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../frontend/build/index.html`)));
 } else {

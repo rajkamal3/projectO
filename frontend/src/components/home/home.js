@@ -26,6 +26,14 @@ const Home = () => {
             .catch(err => {
                 alert('An error occured!');
             });
+        axios
+            .get('/api/marketOpensDailyStrangle1000')
+            .then(res => {
+                alert(res.data.status);
+            })
+            .catch(err => {
+                alert('An error occured!');
+            });
 
         document.querySelector('.marketOpensButton').style.backgroundColor = '#90c695';
     };
@@ -41,6 +49,14 @@ const Home = () => {
             });
         axios
             .get('/api/marketClosesDailyStrangle')
+            .then(res => {
+                alert(res.data.status);
+            })
+            .catch(err => {
+                alert('An error occured!');
+            });
+        axios
+            .get('/api/marketClosesDailyStrangle1000')
             .then(res => {
                 alert(res.data.status);
             })
