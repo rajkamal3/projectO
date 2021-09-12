@@ -26,7 +26,7 @@ async function wakeUp(req, res) {
         '16 09 * * 1-5',
         async () => {
             axios
-                .get('http://127.0.0.1:3000/api/marketOpensDailyStraddle')
+                .get('/api/marketOpensDailyStraddle')
                 .then(res => {
                     console.log('Straddle start success.');
                 })
@@ -34,7 +34,7 @@ async function wakeUp(req, res) {
                     console.log('Error.');
                 });
             axios
-                .get('http://127.0.0.1:3000/api/marketOpensDailyStrangle')
+                .get('/api/marketOpensDailyStrangle')
                 .then(res => {
                     console.log('Strangle start success.');
                 })
@@ -52,7 +52,7 @@ async function wakeUp(req, res) {
         '20 15 * * 1-5',
         async () => {
             axios
-                .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
+                .get('/api/marketClosesDailyStraddle')
                 .then(res => {
                     console.log('Straddle end success.');
                 })
@@ -60,7 +60,7 @@ async function wakeUp(req, res) {
                     console.log('Error.');
                 });
             axios
-                .get('http://127.0.0.1:3000/api/marketClosesDailyStraddle')
+                .get('/api/marketClosesDailyStraddle')
                 .then(res => {
                     console.log('Strangle end success.');
                 })
