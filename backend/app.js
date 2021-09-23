@@ -1,7 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
-const cron = require('node-cron');
 const nextThursday = require('date-fns/nextThursday');
 const { loadSheet } = require('./controllers/loadSheet');
 const { expiryHolidays } = require('./utils/constants');
@@ -18,67 +17,6 @@ app.use(express.json());
 dotenv.config({
     path: `${__dirname}/../config.env`
 });
-
-async function wakeUp(req, res) {
-    console.log('Waking up...');
-
-    cron.schedule(
-        '16 09 * * 1-5',
-        async () => {
-            axios
-                .get('/api/marketOpensDailyStraddle')
-                .then(res => {
-                    console.log('Straddle start success.');
-                })
-                .catch(err => {
-                    console.log('Error.');
-                });
-            axios
-                .get('/api/marketOpensDailyStrangle')
-                .then(res => {
-                    console.log('Strangle start success.');
-                })
-                .catch(err => {
-                    console.log('Error.');
-                });
-        },
-        {
-            scheduled: true,
-            timezone: 'Asia/Kolkata'
-        }
-    );
-
-    cron.schedule(
-        '20 15 * * 1-5',
-        async () => {
-            axios
-                .get('/api/marketClosesDailyStraddle')
-                .then(res => {
-                    console.log('Straddle end success.');
-                })
-                .catch(err => {
-                    console.log('Error.');
-                });
-            axios
-                .get('/api/marketClosesDailyStraddle')
-                .then(res => {
-                    console.log('Strangle end success.');
-                })
-                .catch(err => {
-                    console.log('Error.');
-                });
-        },
-        {
-            scheduled: true,
-            timezone: 'Asia/Kolkata'
-        }
-    );
-
-    res.status(200).json({
-        status: 'Success',
-        message: 'This guy woke up!'
-    });
-}
 
 // Daily Straddle
 let optionChainDailyStraddle;
@@ -347,8 +285,6 @@ async function marketClosesDailyStrangle1000(req, res, next) {
         status: 'Success'
     });
 }
-
-app.get('/api/wakeup', wakeUp);
 
 app.get('/api/marketOpensDailyStraddle', getDataDailyStraddle, marketOpensDailyStraddle);
 app.get('/api/marketClosesDailyStraddle', getDataDailyStraddle, marketClosesDailyStraddle);
