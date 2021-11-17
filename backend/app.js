@@ -36,6 +36,12 @@ let ceStartDailyStrangle1000;
 let peStartDailyStrangle1000;
 let strikePriceDailyStrangle1000;
 
+// Nifty Daily Strangle 500 Points
+let optionChainNiftyDailyStrangle500;
+let ceStartNiftyDailyStrangle500;
+let peStartNiftyDailyStrangle500;
+let strikePriceNiftyDailyStrangle500;
+
 let nextExpiry = nextThursday(new Date());
 
 expiryHolidays.filter(date => {
@@ -286,6 +292,90 @@ async function marketClosesDailyStrangle1000(req, res, next) {
     });
 }
 
+// Nifty Daily Strangle 500 Points
+function getDataNiftyDailyStrangle500(req, res, next) {
+    console.log('Fetching data...');
+    axios
+        .post(process.env.OPTIONCHAIN_URL, {
+            aTyp: 'OPTIDX',
+            exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
+            uSym: 'NIFTY'
+        })
+        .then(res => {
+            optionChainNiftyDailyStrangle500 = res.data.opChn;
+            optionChainNiftyDailyStrangle500.map(option => {
+                if (option.atm === true) {
+                    const atm = optionChainNiftyDailyStrangle500.indexOf(option);
+                    const otmCe = optionChainNiftyDailyStrangle500[atm + 5];
+                    const otmPe = optionChainNiftyDailyStrangle500[atm - 5];
+
+                    ceStartNiftyDailyStrangle500 = otmCe.ceQt.ltp;
+                    peStartNiftyDailyStrangle500 = otmPe.peQt.ltp;
+                    strikePriceNiftyDailyStrangle500 = option.stkPrc;
+                }
+            });
+        })
+        .catch(err => {
+            console.log('Failed to fetch data...');
+        });
+
+    next();
+}
+
+async function marketOpensNiftyDailyStrangle500(req, res, next) {
+    const sheet = await loadSheet(3);
+    console.log('Market opens...');
+
+    await sheet.addRow({
+        Date: new Date().toGMTString().substr(5, 11),
+        'Strike Price': strikePriceNiftyDailyStrangle500,
+        'CE Start': ceStartNiftyDailyStrangle500,
+        'CE End': '',
+        'PE Start': peStartNiftyDailyStrangle500,
+        'PE End': '',
+        Total: ''
+    });
+
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
+async function marketClosesNiftyDailyStrangle500(req, res, next) {
+    const sheet = await loadSheet(3);
+    console.log('Market closes...');
+
+    await sheet.loadCells('A1:G500');
+    const lastRow = await sheet.getRows();
+    const currentCell = lastRow[lastRow.length - 1]._rowNumber;
+    const todayStrike = sheet.getCellByA1('B' + currentCell).value.toString() + '.0';
+
+    let ceEnd, peEnd;
+
+    optionChainNiftyDailyStrangle500.map(option => {
+        if (option.stkPrc === todayStrike) {
+            const atm = optionChainNiftyDailyStrangle500.indexOf(option);
+            console.log(atm);
+            const otmCe = optionChainNiftyDailyStrangle500[atm + 5];
+            const otmPe = optionChainNiftyDailyStrangle500[atm - 5];
+
+            ceEnd = otmCe.ceQt.ltp;
+            peEnd = otmPe.peQt.ltp;
+            strikePriceNiftyDailyStrangle500 = option.stkPrc;
+        }
+    });
+
+    sheet.getCellByA1('D' + currentCell).value = ceEnd;
+    sheet.getCellByA1('F' + currentCell).value = peEnd;
+    sheet.getCellByA1('G' + currentCell).formula = `=MINUS(C${currentCell},D${currentCell}) + MINUS(E${currentCell},F${currentCell})`;
+
+    await sheet.saveUpdatedCells();
+
+    res.status(200).json({
+        status: 'Success'
+    });
+}
+
 app.get('/api/marketOpensDailyStraddle', getDataDailyStraddle, marketOpensDailyStraddle);
 app.get('/api/marketClosesDailyStraddle', getDataDailyStraddle, marketClosesDailyStraddle);
 
@@ -294,6 +384,9 @@ app.get('/api/marketClosesDailyStrangle', getDataDailyStrangle, marketClosesDail
 
 app.get('/api/marketOpensDailyStrangle1000', getDataDailyStrangle1000, marketOpensDailyStrangle1000);
 app.get('/api/marketClosesDailyStrangle1000', getDataDailyStrangle1000, marketClosesDailyStrangle1000);
+
+app.get('/api/marketOpensNiftyDailyStrangle500', getDataNiftyDailyStrangle500, marketOpensNiftyDailyStrangle500);
+app.get('/api/marketClosesNiftyDailyStrangle500', getDataNiftyDailyStrangle500, marketClosesNiftyDailyStrangle500);
 
 if (process.env.NODE_ENV === 'prod') {
     app.use(express.static(`${__dirname}/../frontend/build`));

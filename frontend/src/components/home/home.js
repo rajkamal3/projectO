@@ -28,6 +28,14 @@ const Home = () => {
             .catch(err => {
                 alert('Daily Strangle 1000: An error occured!');
             });
+        axios
+            .get('/api/marketOpensNiftyDailyStrangle500')
+            .then(res => {
+                alert('Nifty Daily Strangle 500: ' + res.data.status);
+            })
+            .catch(err => {
+                alert('Nifty Daily Strangle 500: An error occured!');
+            });
 
         document.querySelector('.marketOpensButton').style.backgroundColor = '#90c695';
     };
@@ -56,6 +64,14 @@ const Home = () => {
             })
             .catch(err => {
                 alert('Daily Strangle 1000: An error occured!');
+            });
+        axios
+            .get('/api/marketClosesNiftyDailyStrangle500')
+            .then(res => {
+                alert('Nifty Daily Strangle 500: ' + res.data.status);
+            })
+            .catch(err => {
+                alert('Nifty Daily Strangle 500: An error occured!');
             });
 
         document.querySelector('.marketClosesButton').style.backgroundColor = '#90c695';
