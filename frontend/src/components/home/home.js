@@ -3,75 +3,107 @@ import styles from './home.module.css';
 import axios from 'axios';
 
 const Home = () => {
-    const marketOpens = () => {
+    const bankNiftyOpens = () => {
         axios
-            .get('/api/marketOpensDailyStraddle')
+            .get('/api/bankNiftyOpensDailyStrangle200')
             .then(res => {
-                alert('Daily Straddle: ' + res.data.status);
+                alert('Strangle 200: ' + res.data.status);
             })
             .catch(err => {
-                alert('Daily Straddle: An error occured!');
+                alert('Strangle 200: An error occured!');
             });
         axios
-            .get('/api/marketOpensDailyStrangle')
+            .get('/api/bankNiftyOpensDailyStrangle400')
             .then(res => {
-                alert('Daily Strangle: ' + res.data.status);
+                alert('Strangle 400: ' + res.data.status);
             })
             .catch(err => {
-                alert('Daily Strangle: An error occured!');
+                alert('Strangle 400: An error occured!');
             });
         axios
-            .get('/api/marketOpensDailyStrangle1000')
+            .get('/api/bankNiftyOpensDailyStrangle600')
             .then(res => {
-                alert('Daily Strangle 1000: ' + res.data.status);
+                alert('Strangle 600: ' + res.data.status);
             })
             .catch(err => {
-                alert('Daily Strangle 1000: An error occured!');
+                alert('Strangle 600: An error occured!');
             });
         axios
-            .get('/api/marketOpensNiftyDailyStrangle500')
+            .get('/api/bankNiftyOpensDailyStrangle800')
             .then(res => {
-                alert('Nifty Daily Strangle 500: ' + res.data.status);
+                alert('Strangle 800: ' + res.data.status);
             })
             .catch(err => {
-                alert('Nifty Daily Strangle 500: An error occured!');
+                alert('Strangle 800: An error occured!');
+            });
+        axios
+            .get('/api/bankNiftyOpensDailyStrangle1000')
+            .then(res => {
+                alert('Strangle 1000: ' + res.data.status);
+            })
+            .catch(err => {
+                alert('Strangle 1000: An error occured!');
+            });
+        axios
+            .get('/api/bankNiftyOpensDailyStrangleOpp1000')
+            .then(res => {
+                alert('Strangle Opp 1000: ' + res.data.status);
+            })
+            .catch(err => {
+                alert('Strangle Opp 1000: An error occured!');
             });
 
         document.querySelector('.marketOpensButton').style.backgroundColor = '#90c695';
     };
 
-    const marketCloses = () => {
+    const bankNiftyCloses = () => {
         axios
-            .get('/api/marketClosesDailyStraddle')
+            .get('/api/bankNiftyClosesDailyStrangle200')
             .then(res => {
-                alert('Daily Straddle: ' + res.data.status);
+                alert('Straddle 200: ' + res.data.status);
             })
             .catch(err => {
-                alert('Daily Straddle: An error occured!');
+                alert('Straddle 200: An error occured!');
             });
         axios
-            .get('/api/marketClosesDailyStrangle')
+            .get('/api/bankNiftyClosesDailyStrangle400')
             .then(res => {
-                alert('Daily Strangle: ' + res.data.status);
+                alert('Strangle 400: ' + res.data.status);
             })
             .catch(err => {
-                alert('Daily Strangle: An error occured!');
+                alert('Strangle 400: An error occured!');
             });
         axios
-            .get('/api/marketClosesDailyStrangle1000')
+            .get('/api/bankNiftyClosesDailyStrangle600')
             .then(res => {
-                alert('Daily Strangle 1000: ' + res.data.status);
+                alert('Strangle 600: ' + res.data.status);
             })
             .catch(err => {
-                alert('Daily Strangle 1000: An error occured!');
+                alert('Strangle 600: An error occured!');
             });
         axios
-            .get('/api/marketClosesNiftyDailyStrangle500')
+            .get('/api/bankNiftyClosesDailyStrangle800')
             .then(res => {
-                alert('Nifty Daily Strangle 500: ' + res.data.status);
+                alert('Strangle 800: ' + res.data.status);
             })
             .catch(err => {
-                alert('Nifty Daily Strangle 500: An error occured!');
+                alert('Strangle 800: An error occured!');
+            });
+        axios
+            .get('/api/bankNiftyClosesDailyStrangle1000')
+            .then(res => {
+                alert('Strangle 1000: ' + res.data.status);
+            })
+            .catch(err => {
+                alert('Strangle 1000: An error occured!');
+            });
+        axios
+            .get('/api/bankNiftyClosesDailyStrangleOpp1000')
+            .then(res => {
+                alert('Strangle Opp 1000: ' + res.data.status);
+            })
+            .catch(err => {
+                alert('Strangle Opp 1000: An error occured!');
             });
 
         document.querySelector('.marketClosesButton').style.backgroundColor = '#90c695';
@@ -81,12 +113,12 @@ const Home = () => {
         <div className={styles.container}>
             <div className={styles.header}>projectO</div>
             <div className={styles.strategy}>
-                <div>Short Straddle &amp; Strangle - Daily</div>
+                <div>Short Straddle &amp; Strangle - Bank Nifty</div>
                 <div className={styles.buttonsContainer}>
-                    <div className={[styles.marketOpensClosesButtons, 'marketOpensButton'].join(' ')} onClick={marketOpens}>
+                    <div className={[styles.marketOpensClosesButtons, 'marketOpensButton'].join(' ')} onClick={bankNiftyOpens}>
                         Market Opens
                     </div>
-                    <div className={[styles.marketOpensClosesButtons, 'marketClosesButton'].join(' ')} onClick={marketCloses}>
+                    <div className={[styles.marketOpensClosesButtons, 'marketClosesButton'].join(' ')} onClick={bankNiftyCloses}>
                         Market Closes
                     </div>
                 </div>
