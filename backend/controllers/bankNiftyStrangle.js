@@ -2,11 +2,7 @@ const axios = require('axios');
 const nextThursday = require('date-fns/nextThursday');
 const { loadSheet } = require('../utils/loadSheet');
 const { expiryHolidays } = require('../utils/constants');
-
-let optionChainDailyStrangle;
-let ceStartDailyStrangle;
-let peStartDailyStrangle;
-let strikePriceDailyStrangle;
+const { calculateOptionChainDifference } = require('../utils/calculateOptionChainDifference');
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const today = new Date(new Date().toJSON());
@@ -26,8 +22,15 @@ if (dayName !== 'Thursday') {
     nextExpiry = new Date(new Date().toJSON());
 }
 
-exports.getBankNiftyDataDailyStrangle600 = async (req, res, next) => {
-    console.log('Fetching data...');
+exports.bankNiftyOpensDailyStrangle = async (req, res, next) => {
+    let optionChainDailyStrangle;
+    let ceStartDailyStrangle;
+    let peStartDailyStrangle;
+    let strikePriceDailyStrangle;
+
+    let strangleDifference = req.params.strangleDifference;
+    let optionChainDifference = calculateOptionChainDifference(strangleDifference);
+
     axios
         .post(process.env.OPTIONCHAIN_URL, {
             aTyp: 'OPTIDX',
@@ -36,15 +39,16 @@ exports.getBankNiftyDataDailyStrangle600 = async (req, res, next) => {
         })
         .then(res => {
             optionChainDailyStrangle = res.data.opChn;
+
             optionChainDailyStrangle.map(option => {
                 if (option.atm === true) {
                     const atm = optionChainDailyStrangle.indexOf(option);
-                    const otmCe = optionChainDailyStrangle[atm + 3];
-                    const otmPe = optionChainDailyStrangle[atm - 3];
+                    const otmCe = optionChainDailyStrangle[atm + Number(optionChainDifference)];
+                    const otmPe = optionChainDailyStrangle[atm - Number(optionChainDifference)];
 
+                    strikePriceDailyStrangle = option.stkPrc;
                     ceStartDailyStrangle = otmCe.ceQt.ltp;
                     peStartDailyStrangle = otmPe.peQt.ltp;
-                    strikePriceDailyStrangle = option.stkPrc;
                 }
             });
         })
@@ -52,11 +56,14 @@ exports.getBankNiftyDataDailyStrangle600 = async (req, res, next) => {
             console.log('Failed to fetch data...');
         });
 
-    next();
-};
+    let sheet;
 
-exports.bankNiftyOpensDailyStrangle600 = async (req, res, next) => {
-    const sheet = await loadSheet(1);
+    if (Number(optionChainDifference) > 0) {
+        sheet = await loadSheet(Number(Math.abs(optionChainDifference)) - 1);
+    } else {
+        sheet = await loadSheet(Number(Math.abs(optionChainDifference)));
+    }
+
     console.log('Market opens...');
 
     await sheet.addRow({
@@ -70,12 +77,42 @@ exports.bankNiftyOpensDailyStrangle600 = async (req, res, next) => {
     });
 
     res.status(200).json({
-        status: 'Success'
+        status: 'Success',
+        strikePrice: strikePriceDailyStrangle
     });
 };
 
-exports.bankNiftyClosesDailyStrangle600 = async (req, res, next) => {
-    const sheet = await loadSheet(1);
+exports.bankNiftyClosesDailyStrangle = async (req, res, next) => {
+    let optionChainDailyStrangle;
+    let strikePriceDailyStrangle;
+
+    let strangleDifference = req.params.strangleDifference;
+
+    let optionChainDifference = calculateOptionChainDifference(strangleDifference);
+
+    console.log('Fetching data...');
+
+    axios
+        .post(process.env.OPTIONCHAIN_URL, {
+            aTyp: 'OPTIDX',
+            exp: new Date(nextExpiry).toDateString().substr(4, 11).trim(),
+            uSym: 'BANKNIFTY'
+        })
+        .then(res => {
+            optionChainDailyStrangle = res.data.opChn;
+        })
+        .catch(err => {
+            console.log('Failed to fetch data...');
+        });
+
+    let sheet;
+
+    if (Number(optionChainDifference) > 0) {
+        sheet = await loadSheet(Number(Math.abs(optionChainDifference)) - 1);
+    } else {
+        sheet = await loadSheet(Number(Math.abs(optionChainDifference)));
+    }
+
     console.log('Market closes...');
 
     await sheet.loadCells('A1:G500');
@@ -88,9 +125,8 @@ exports.bankNiftyClosesDailyStrangle600 = async (req, res, next) => {
     optionChainDailyStrangle.map(option => {
         if (option.stkPrc === todayStrike) {
             const atm = optionChainDailyStrangle.indexOf(option);
-            console.log(atm);
-            const otmCe = optionChainDailyStrangle[atm + 3];
-            const otmPe = optionChainDailyStrangle[atm - 3];
+            const otmCe = optionChainDailyStrangle[atm + Number(optionChainDifference)];
+            const otmPe = optionChainDailyStrangle[atm - Number(optionChainDifference)];
 
             ceEnd = otmCe.ceQt.ltp;
             peEnd = otmPe.peQt.ltp;
